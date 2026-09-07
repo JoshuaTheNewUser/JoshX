@@ -336,6 +336,10 @@ Result FileSystemController::RegisterProcess(
     ProcessId process_id, ProgramId program_id,
     std::shared_ptr<FileSys::RomFSFactory>&& romfs_factory) {
     std::scoped_lock lk{registration_lock};
+    if (registrations.empty()) {
+        const auto save_directory = system.GetFilesystem()->OpenDirectory(Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir), FileSys::OpenMode::ReadWrite);
+        if (save_directory != nullptr) save_directory->DeleteSubdirectoryRecursive("temp");
+    }
 
     registrations.emplace(process_id, Registration{
                                           .program_id = program_id,
