@@ -299,17 +299,11 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData2(
 
 void IReadOnlyApplicationControlDataInterface::ListApplicationIcon(HLERequestContext& ctx) {
     LOG_WARNING(Service_NS, "(stubbed)");
-
     const auto app_ids_buffer = ctx.ReadBuffer();
     const u64 app_count = app_ids_buffer.size() / sizeof(u64);
     auto t_mem_obj = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(ctx.GetCopyHandle(0));
     auto* t_mem = t_mem_obj.GetPointerUnsafe();
-
-    constexpr size_t title_entry_size = sizeof(FileSys::LanguageEntry);
-    const size_t total_data_size = app_count * title_entry_size;
-
-    constexpr s32 data_offset = 0;
-
+    size_t out_length = 0;
     if (t_mem != nullptr && t_mem->GetOwner() != nullptr && app_count > 0) {
         auto& memory = t_mem->GetOwner()->GetMemory();
         const auto t_mem_address = t_mem->GetSourceAddress();
