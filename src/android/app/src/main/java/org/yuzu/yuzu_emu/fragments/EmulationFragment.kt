@@ -1194,6 +1194,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.array.rendererAntiAliasingNames,
                 R.array.rendererAntiAliasingValues
             )
+
+            quickSettings.addPostProcessing(container) {
+                addQuickSettings()
+            }
         }
     }
 

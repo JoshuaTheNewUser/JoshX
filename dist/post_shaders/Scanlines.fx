@@ -61,7 +61,10 @@ float4 PS_Scanlines(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(color * saturate(gate)), 1.0);
 }
 
-technique Scanlines
+technique Scanlines <
+    ui_label = "Scanlines";
+    ui_tooltip = "Horizontal scanlines of a CRT display.";
+>
 {
     pass
     {

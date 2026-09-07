@@ -59,7 +59,10 @@ float4 PS_ColorGrade(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(rgb), 1.0);
 }
 
-technique ColorGrade
+technique ColorGrade <
+    ui_label = "Colour Grade";
+    ui_tooltip = "Global saturation, brightness, contrast and gamma.";
+>
 {
     pass
     {

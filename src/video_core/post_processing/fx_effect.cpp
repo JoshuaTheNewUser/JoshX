@@ -176,6 +176,15 @@ FxEffectDesc DescribeEffect(const std::filesystem::path& path, const std::filesy
         desc.techniques.push_back(technique.name);
     }
 
+    if (!compiled.module.techniques.empty()) {
+        const auto& annotations = compiled.module.techniques.front().annotations;
+        desc.label = AnnotationString(annotations, "ui_label");
+        desc.description = AnnotationString(annotations, "ui_tooltip");
+    }
+    if (desc.label.empty()) {
+        desc.label = desc.name;
+    }
+
     for (const auto& uniform : compiled.module.uniforms) {
         FxUniformDesc uniform_desc = DescribeUniform(uniform);
         if (uniform_desc.ui_type == FxUiType::Hidden) {

@@ -48,7 +48,10 @@ float4 PS_ChromaticAberration(float4 pos : SV_Position, float2 uv : TEXCOORD) : 
     return float4(red, green, blue, 1.0);
 }
 
-technique ChromaticAberration
+technique ChromaticAberration <
+    ui_label = "Chromatic Aberration";
+    ui_tooltip = "Splits the colour channels apart towards the edges of the screen, like a cheap lens.";
+>
 {
     pass
     {

@@ -69,7 +69,10 @@ float4 PS_CRT(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(color), 1.0);
 }
 
-technique CRT
+technique CRT <
+    ui_label = "CRT";
+    ui_tooltip = "Curved scanlines and the phosphor mask of a CRT television.";
+>
 {
     pass
     {

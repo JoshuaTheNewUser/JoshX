@@ -55,7 +55,10 @@ float4 PS_Natural(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(mul(YIQtoRGB, yiq)), 1.0);
 }
 
-technique NaturalColors
+technique NaturalColors <
+    ui_label = "Natural Colours";
+    ui_tooltip = "Warmer and more saturated look. Ported from the PPSSPP shader.";
+>
 {
     pass
     {

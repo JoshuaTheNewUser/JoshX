@@ -74,7 +74,10 @@ float4 PS_Cartoon(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(color), 1.0);
 }
 
-technique Cartoon
+technique Cartoon <
+    ui_label = "Cartoon";
+    ui_tooltip = "Ink outlines and flat colour bands. Faithful port of the PPSSPP shader; the outline gets heavy in dark scenes.";
+>
 {
     pass
     {

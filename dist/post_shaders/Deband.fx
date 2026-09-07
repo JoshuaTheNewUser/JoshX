@@ -86,7 +86,10 @@ float4 PS_Deband(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(result + dither), 1.0);
 }
 
-technique Deband
+technique Deband <
+    ui_label = "Deband";
+    ui_tooltip = "Smooths the visible steps in gradients such as skies, then dithers whatever survives.";
+>
 {
     pass
     {

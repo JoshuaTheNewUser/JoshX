@@ -38,7 +38,10 @@ float4 PS_Sharpen(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(centre + (centre - blur) * Amount, 1.0);
 }
 
-technique Sharpen
+technique Sharpen <
+    ui_label = "Sharpen";
+    ui_tooltip = "Unsharp mask that brings back edge detail lost to scaling.";
+>
 {
     pass
     {

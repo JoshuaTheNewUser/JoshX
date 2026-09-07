@@ -7,7 +7,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -17,11 +16,8 @@
 #include <QScrollArea>
 #include <QSlider>
 #include <QToolButton>
-#include <QUrl>
 #include <QVBoxLayout>
 
-#include "common/fs/fs.h"
-#include "common/fs/fs_util.h"
 #include "video_core/post_processing/fx_chain.h"
 #include "video_core/post_processing/fx_effect.h"
 #include "yuzu/configuration/configure_post_processing.h"
@@ -53,7 +49,7 @@ QString FormatValue(const VideoCore::FxUniformDesc& uniform, float value) {
 }
 
 QString SlotLabel(const VideoCore::FxEffectDesc& effect, const std::string& technique) {
-    const QString name = QString::fromStdString(effect.name);
+    const QString name = QString::fromStdString(effect.label);
     if (effect.techniques.size() == 1) {
         return name;
     }
@@ -99,23 +95,6 @@ ConfigurePostProcessing::ConfigurePostProcessing(QWidget* parent) : QDialog(pare
     });
     actions->addWidget(add_button);
 
-    auto* reload_button = new QPushButton(tr("Reload From Disk"), this);
-    connect(reload_button, &QPushButton::clicked, this, [this]() {
-        VideoCore::ReloadFxCatalog();
-        VideoCore::FxChain::Instance().DropUnknownEntries();
-        ApplyStructuralChange();
-    });
-    actions->addWidget(reload_button);
-
-    auto* open_button = new QPushButton(tr("Open Folder"), this);
-    connect(open_button, &QPushButton::clicked, this, []() {
-        const auto path = VideoCore::GetFxRootDirectory();
-        void(Common::FS::CreateDirs(path));
-        QDesktopServices::openUrl(
-            QUrl::fromLocalFile(QString::fromStdString(Common::FS::PathToUTF8String(path))));
-    });
-    actions->addWidget(open_button);
-
     actions->addStretch();
     root->addLayout(actions);
 
@@ -147,6 +126,8 @@ void ConfigurePostProcessing::PopulateEffectCombo(QComboBox* combo,
         for (const auto& technique : effect.techniques) {
             const QString key = QString::fromStdString(effect.file + "|" + technique);
             combo->addItem(SlotLabel(effect, technique), key);
+            combo->setItemData(combo->count() - 1, QString::fromStdString(effect.description),
+                               Qt::ToolTipRole);
             if (effect.file == entry.file && technique == entry.technique) {
                 selected = combo->count() - 1;
             }

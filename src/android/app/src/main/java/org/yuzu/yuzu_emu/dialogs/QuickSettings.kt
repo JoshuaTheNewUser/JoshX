@@ -18,6 +18,7 @@ import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.NativePostProcessing
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
@@ -230,6 +231,250 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         }
 
         container.addView(itemView)
+    }
+
+    fun addChoice(
+        title: String,
+        container: ViewGroup,
+        choices: List<String>,
+        selectedIndex: Int,
+        onSelected: (Int) -> Unit
+    ) {
+        val inflater = LayoutInflater.from(emulationFragment.requireContext())
+        val itemView = inflater.inflate(R.layout.item_quick_settings_menu, container, false)
+        val headerView = itemView.findViewById<ViewGroup>(R.id.setting_header)
+        val titleView = itemView.findViewById<TextView>(R.id.setting_title)
+        val valueView = itemView.findViewById<TextView>(R.id.setting_value)
+        val expandIcon = itemView.findViewById<android.widget.ImageView>(R.id.expand_icon)
+        val radioGroup = itemView.findViewById<RadioGroup>(R.id.radio_group)
+
+        titleView.text = title
+
+        var current = ""
+        if (selectedIndex in choices.indices) {
+            current = choices[selectedIndex]
+        }
+        valueView.text = current
+        headerView.visibility = View.VISIBLE
+
+        var isExpanded = false
+        choices.forEachIndexed { index, name ->
+            val radioButton = com.google.android.material.radiobutton.MaterialRadioButton(
+                emulationFragment.requireContext()
+            )
+            radioButton.text = name
+            radioButton.id = View.generateViewId()
+            radioButton.isChecked = index == selectedIndex
+            radioButton.setPadding(16, 8, 16, 8)
+
+            radioButton.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    valueView.text = name
+                    onSelected(index)
+                }
+            }
+            radioGroup.addView(radioButton)
+        }
+
+        headerView.setOnClickListener {
+            isExpanded = !isExpanded
+            if (isExpanded) {
+                radioGroup.visibility = View.VISIBLE
+                expandIcon.animate().rotation(180f).setDuration(200).start()
+            } else {
+                radioGroup.visibility = View.GONE
+                expandIcon.animate().rotation(0f).setDuration(200).start()
+            }
+        }
+
+        container.addView(itemView)
+    }
+
+    fun addStepSlider(
+        title: String,
+        container: ViewGroup,
+        steps: Int,
+        selectedStep: Int,
+        describe: (Int) -> String,
+        onChanged: (Int) -> Unit
+    ) {
+        val inflater = LayoutInflater.from(emulationFragment.requireContext())
+        val itemView = inflater.inflate(R.layout.item_quick_settings_menu, container, false)
+
+        val sliderContainer = itemView.findViewById<ViewGroup>(R.id.slider_container)
+        val titleView = itemView.findViewById<TextView>(R.id.slider_title)
+        val valueDisplay = itemView.findViewById<TextView>(R.id.slider_value_display)
+        val slider = itemView.findViewById<com.google.android.material.slider.Slider>(
+            R.id.setting_slider
+        )
+
+        titleView.text = title
+        sliderContainer.visibility = View.VISIBLE
+
+        slider.valueFrom = 0f
+        slider.valueTo = steps.toFloat()
+        slider.stepSize = 1f
+        slider.value = selectedStep.toFloat().coerceIn(0f, steps.toFloat())
+        valueDisplay.text = describe(slider.value.toInt())
+
+        slider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                val step = value.toInt()
+                onChanged(step)
+                valueDisplay.text = describe(step)
+            }
+        }
+
+        slider.setOnTouchListener { _, event ->
+            val drawer = emulationFragment.view?.findViewById<DrawerLayout>(R.id.drawer_layout)
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    drawer?.requestDisallowInterceptTouchEvent(true)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    drawer?.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            false
+        }
+
+        container.addView(itemView)
+    }
+
+    fun addPostProcessing(container: ViewGroup, onStructureChanged: () -> Unit) {
+        val usable = NativePostProcessing.catalog().filter { it.valid }
+        if (usable.isEmpty()) {
+            return
+        }
+
+        val labels = mutableListOf(
+            YuzuApplication.appContext.getString(R.string.post_processing_none)
+        )
+        val files = mutableListOf("")
+        val techniques = mutableListOf("")
+
+        for (effect in usable) {
+            for (technique in effect.techniques) {
+                var label = effect.label
+                if (effect.techniques.size > 1) {
+                    label = effect.label + " \u00b7 " + technique
+                }
+                labels.add(label)
+                files.add(effect.file)
+                techniques.add(technique)
+            }
+        }
+
+        addDivider(container)
+
+        val chain = NativePostProcessing.chain()
+        for (index in 0..chain.size) {
+            var selected = 0
+            var effect: NativePostProcessing.Effect? = null
+
+            if (index < chain.size) {
+                val entry = chain[index]
+                effect = usable.firstOrNull { it.file == entry.file }
+                for (i in files.indices) {
+                    if (files[i] == entry.file && techniques[i] == entry.technique) {
+                        selected = i
+                    }
+                }
+            }
+
+            var title = YuzuApplication.appContext.getString(R.string.post_processing_add)
+            if (index < chain.size) {
+                title = YuzuApplication.appContext.getString(R.string.post_processing_effect)
+            }
+
+            addChoice(title, container, labels, selected) { picked ->
+                applyEffectPick(index, picked, files, techniques, chain.size)
+                onStructureChanged()
+            }
+
+            if (effect != null) {
+                for (uniform in effect.uniforms) {
+                    addUniformSliders(container, index, uniform)
+                }
+            }
+        }
+    }
+
+    private fun applyEffectPick(
+        index: Int,
+        picked: Int,
+        files: List<String>,
+        techniques: List<String>,
+        chainSize: Int
+    ) {
+        if (index >= chainSize) {
+            if (picked > 0) {
+                NativePostProcessing.append(files[picked], techniques[picked])
+                NativePostProcessing.persist()
+            }
+            return
+        }
+
+        if (picked == 0) {
+            NativePostProcessing.remove(index)
+            NativePostProcessing.persist()
+            return
+        }
+
+        NativePostProcessing.replace(index, files[picked], techniques[picked])
+        NativePostProcessing.persist()
+    }
+
+    private fun addUniformSliders(
+        container: ViewGroup,
+        index: Int,
+        uniform: NativePostProcessing.Uniform
+    ) {
+        if (uniform.uiType == NativePostProcessing.UI_HIDDEN) {
+            return
+        }
+
+        for (component in 0 until uniform.components) {
+            var title = uniform.label
+            if (uniform.components > 1) {
+                title = uniform.label + " [" + component + "]"
+            }
+
+            var value = uniform.defaultAt(component)
+            if (NativePostProcessing.hasValue(index, uniform.name)) {
+                value = NativePostProcessing.getValue(index, uniform.name, component)
+            }
+
+            val steps = uniform.steps
+            val step = Math.round((value - uniform.min) / uniform.step)
+
+            addStepSlider(
+                title,
+                container,
+                steps,
+                step,
+                { position -> describeUniform(uniform, position) }
+            ) { position ->
+                NativePostProcessing.setValue(
+                    index,
+                    uniform.name,
+                    component,
+                    uniform.min + position * uniform.step
+                )
+                NativePostProcessing.persist()
+            }
+        }
+    }
+
+    private fun describeUniform(
+        uniform: NativePostProcessing.Uniform,
+        position: Int
+    ): String {
+        val value = uniform.min + position * uniform.step
+        if (uniform.kind == NativePostProcessing.KIND_FLOAT) {
+            return String.format("%.3f", value)
+        }
+        return Math.round(value).toString()
     }
 
     fun addDivider(container: ViewGroup) {

@@ -94,10 +94,7 @@ std::string SerializeFxChain(std::span<const FxChainEntry> entries) {
         if (!out.empty()) {
             out += ';';
         }
-        out += entry.file;
-        out += '|';
-        out += entry.technique;
-        out += '|';
+        out += fmt::format("{}|{}|", entry.file, entry.technique);
 
         bool first = true;
         for (const auto& [name, value] : entry.values) {

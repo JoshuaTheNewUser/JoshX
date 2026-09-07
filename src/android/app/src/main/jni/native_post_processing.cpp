@@ -65,10 +65,14 @@ jstring Java_org_yuzu_yuzu_1emu_utils_NativePostProcessing_getCatalogJson(JNIEnv
     nlohmann::json out = nlohmann::json::array();
 
 #ifdef HAS_RESHADE
+    VideoCore::FxChain::Instance().DropUnknownEntries();
+
     for (const auto& effect : VideoCore::GetFxCatalog()) {
         nlohmann::json entry;
         entry["file"] = effect.file;
         entry["name"] = effect.name;
+        entry["label"] = effect.label;
+        entry["description"] = effect.description;
         entry["error"] = effect.error;
         entry["techniques"] = effect.techniques;
 
@@ -196,13 +200,6 @@ void Java_org_yuzu_yuzu_1emu_utils_NativePostProcessing_setValue(JNIEnv* env, jo
 void Java_org_yuzu_yuzu_1emu_utils_NativePostProcessing_store(JNIEnv* env, jobject obj) {
 #ifdef HAS_RESHADE
     VideoCore::FxChain::Instance().StoreToSettings();
-#endif
-}
-
-void Java_org_yuzu_yuzu_1emu_utils_NativePostProcessing_reload(JNIEnv* env, jobject obj) {
-#ifdef HAS_RESHADE
-    VideoCore::ReloadFxCatalog();
-    VideoCore::FxChain::Instance().DropUnknownEntries();
 #endif
 }
 

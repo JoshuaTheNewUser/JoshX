@@ -47,7 +47,6 @@ object NativePostProcessing {
         NativeConfig.saveGlobalConfig()
     }
 
-    external fun reload()
 
     external fun getShaderDirectory(): String
 
@@ -89,6 +88,8 @@ object NativePostProcessing {
     data class Effect(
         val file: String,
         val name: String,
+        val label: String,
+        val description: String,
         val error: String,
         val techniques: List<String>,
         val uniforms: List<Uniform>
@@ -108,6 +109,8 @@ object NativePostProcessing {
                 Effect(
                     file = obj.optString("file"),
                     name = obj.optString("name"),
+                    label = obj.optString("label"),
+                    description = obj.optString("description"),
                     error = obj.optString("error"),
                     techniques = obj.optJSONArray("techniques").toStringList(),
                     uniforms = obj.optJSONArray("uniforms").toUniformList()

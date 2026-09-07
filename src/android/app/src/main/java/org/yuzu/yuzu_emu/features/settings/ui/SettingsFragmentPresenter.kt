@@ -199,17 +199,6 @@ class SettingsFragmentPresenter(
         val usable = NativePostProcessing.catalog().filter { it.valid }
 
         sl.apply {
-            add(
-                RunnableSetting(
-                    titleId = R.string.post_processing_reload,
-                    descriptionId = R.string.post_processing_reload_description,
-                    isRunnable = true
-                ) {
-                    NativePostProcessing.reload()
-                    settingsViewModel.setReloadListAndNotifyDataset(true)
-                }
-            )
-
             if (usable.isEmpty()) {
                 add(
                     RunnableSetting(
@@ -227,9 +216,9 @@ class SettingsFragmentPresenter(
             for (effect in usable) {
                 for (technique in effect.techniques) {
                     if (effect.techniques.size == 1) {
-                        labels.add(effect.name)
+                        labels.add(effect.label)
                     } else {
-                        labels.add(effect.name + " \u00b7 " + technique)
+                        labels.add(effect.label + " \u00b7 " + technique)
                     }
                     files.add(effect.file)
                     techniques.add(technique)
@@ -242,8 +231,10 @@ class SettingsFragmentPresenter(
                 val effect = usable.firstOrNull { it.file == entry.file }
 
                 var header = entry.file
+                var summary = ""
                 if (effect != null) {
-                    header = effect.name
+                    header = effect.label
+                    summary = effect.description
                 }
                 add(HeaderSetting(titleString = header))
 
@@ -251,6 +242,7 @@ class SettingsFragmentPresenter(
                     IntSingleChoiceSetting(
                         buildSlotSelector(index, entry, files, techniques),
                         titleId = R.string.post_processing_effect,
+                        descriptionString = summary,
                         choices = labels.toTypedArray(),
                         values = labels.indices.toList().toTypedArray()
                     )

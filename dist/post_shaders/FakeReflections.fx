@@ -61,7 +61,10 @@ float4 PS_FakeReflections(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_T
     return float4(saturate(color + reflection), 1.0);
 }
 
-technique FakeReflections
+technique FakeReflections <
+    ui_label = "Fake Reflections";
+    ui_tooltip = "Adds a wet looking reflection across the lower half of the screen.";
+>
 {
     pass
     {

@@ -48,6 +48,8 @@ struct FxUniformDesc {
 struct FxEffectDesc {
     std::string file;
     std::string name;
+    std::string label;
+    std::string description;
     std::vector<std::string> techniques;
     std::vector<FxUniformDesc> uniforms;
     std::string error;

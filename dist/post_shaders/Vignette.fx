@@ -47,7 +47,10 @@ float4 PS_Vignette(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(rgb * falloff, 1.0);
 }
 
-technique Vignette
+technique Vignette <
+    ui_label = "Vignette";
+    ui_tooltip = "Darkens the corners of the screen.";
+>
 {
     pass
     {

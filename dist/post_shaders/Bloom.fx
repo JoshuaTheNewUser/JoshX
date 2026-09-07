@@ -65,7 +65,10 @@ float4 PS_Bloom(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     return float4(saturate(color + sum * Amount), 1.0);
 }
 
-technique Bloom
+technique Bloom <
+    ui_label = "Bloom";
+    ui_tooltip = "Blooms bright areas into a soft glow.";
+>
 {
     pass
     {
