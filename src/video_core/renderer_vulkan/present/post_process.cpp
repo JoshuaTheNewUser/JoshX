@@ -567,7 +567,7 @@ bool PostProcessChain::BuildEffects(const Device& device, MemoryAllocator& alloc
                 entry_binding.binding = binding.entry_point_binding;
                 entry_binding.sampler_index = binding.index;
                 out.sampler_bindings.push_back(entry_binding);
-                binding_count = std::max(binding_count, binding.entry_point_binding + 1);
+                binding_count = std::max<u32>(binding_count, binding.entry_point_binding + 1);
             }
 
             const std::vector<VkDescriptorType> sampler_types(
