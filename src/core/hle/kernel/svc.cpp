@@ -2502,15 +2502,12 @@ void Call(Core::System& system, u32 imm) {
     std::array<uint64_t, 8> args;
     kernel.CurrentPhysicalCore().SaveSvcArguments(process, args);
     //kernel.EnterSVCProfile();
+    LOG_TRACE(Kernel_SVC, "{} [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x} [6]={:#x}",
+        imm, GetArg64(args, 0), GetArg64(args, 1), GetArg64(args, 2),
+        GetArg64(args, 3), GetArg64(args, 4), GetArg64(args, 5), GetArg64(args, 6));
     if (process.Is64Bit()) {
-        LOG_TRACE(Kernel_SVC, "{} [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x} [6]={:#x}",
-            imm, GetArg64(args, 0), GetArg64(args, 1), GetArg64(args, 2),
-            GetArg64(args, 3), GetArg64(args, 4), GetArg64(args, 5), GetArg64(args, 6));
         Call64(system, imm, args);
     } else {
-        LOG_TRACE(Kernel_SVC, "{} [0]={:#x} [1]={:#x} [2]={:#x} [3]={:#x} [4]={:#x} [5]={:#x} [6]={:#x}",
-            imm, GetArg32(args, 0), GetArg32(args, 1), GetArg32(args, 2),
-            GetArg32(args, 3), GetArg32(args, 4), GetArg32(args, 5), GetArg32(args, 6));
         Call32(system, imm, args);
     }
     //kernel.ExitSVCProfile();
