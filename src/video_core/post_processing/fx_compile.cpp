@@ -26,7 +26,7 @@ FxCompileResult CompileFxEffect(const std::filesystem::path& path, u32 width, u3
     }
 
     reshadefx::preprocessor preprocessor;
-    preprocessor.add_macro_definition("__RESHADE__", "50000");
+    preprocessor.add_macro_definition("__RESHADE__", "60800");
     preprocessor.add_macro_definition("__RESHADE_PERFORMANCE_MODE__", "1");
     preprocessor.add_macro_definition("__RENDERER__", "0x20000");
     preprocessor.add_macro_definition("__VENDOR__", "0");
