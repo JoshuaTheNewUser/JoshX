@@ -24,15 +24,7 @@ uniform float Chroma <
 
 void VS_PostProcess(in uint id : SV_VertexID, out float4 pos : SV_Position, out float2 uv : TEXCOORD)
 {
-    uv = float2(0.0, 0.0);
-    if (id == 2)
-    {
-        uv.x = 2.0;
-    }
-    if (id == 1)
-    {
-        uv.y = 2.0;
-    }
+    uv = float2(float(id & 2), float((id & 1) << 1));
     pos = float4(uv * float2(2.0, -2.0) + float2(-1.0, 1.0), 0.0, 1.0);
 }
 

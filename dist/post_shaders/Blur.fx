@@ -33,37 +33,10 @@ uniform float FocusSoftness <
 > = 0.4;
 
 static const int TAPS = 17;
-static const float3 KERNEL[17] = {
-    float3( 0.171499,  0.000000, 0.942873),
-    float3(-0.219031,  0.200651, 0.838223),
-    float3( 0.033526, -0.382014, 0.745189),
-    float3( 0.276075,  0.360090, 0.662480),
-    float3(-0.506631, -0.089616, 0.588951),
-    float3( 0.479925, -0.305289, 0.523583),
-    float3(-0.160526,  0.597147, 0.465471),
-    float3(-0.306140, -0.589453, 0.413808),
-    float3( 0.664200,  0.242565, 0.367879),
-    float3(-0.690990,  0.285231, 0.327048),
-    float3( 0.333103, -0.711821, 0.290749),
-    float3( 0.246154,  0.784779, 0.258479),
-    float3(-0.741912, -0.429953, 0.229790),
-    float3( 0.870348, -0.191344, 0.204286),
-    float3(-0.531160,  0.755520, 0.181612),
-    float3(-0.122710, -0.946946, 0.161455),
-    float3( 0.753320,  0.634899, 0.143535)
-};
 
 void VS_PostProcess(in uint id : SV_VertexID, out float4 pos : SV_Position, out float2 uv : TEXCOORD)
 {
-    uv = float2(0.0, 0.0);
-    if (id == 2)
-    {
-        uv.x = 2.0;
-    }
-    if (id == 1)
-    {
-        uv.y = 2.0;
-    }
+    uv = float2(float(id & 2), float((id & 1) << 1));
     pos = float4(uv * float2(2.0, -2.0) + float2(-1.0, 1.0), 0.0, 1.0);
 }
 
@@ -79,17 +52,22 @@ float4 PS_Blur(float4 pos : SV_Position, float2 uv : TEXCOORD) : SV_Target
     float amount = Strength * focus;
 
     float angle = frac(sin(dot(pos.xy, float2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
-    float2 rotation = float2(cos(angle), sin(angle));
+    float2 spoke = float2(cos(angle), sin(angle));
+
+    const float2 turn = float2(cos(2.39996323), sin(2.39996323));
+    const float decay = exp(-2.0 / float(TAPS));
+    float weight = exp(-1.0 / float(TAPS));
 
     float3 sum = float3(0.0, 0.0, 0.0);
     float total = 0.0;
     for (int i = 0; i < TAPS; ++i)
     {
-        float3 tap = KERNEL[i];
-        float2 spun = float2(tap.x * rotation.x - tap.y * rotation.y,
-                             tap.x * rotation.y + tap.y * rotation.x);
-        sum += tex2D(BackBuffer, uv + spun * texel * Radius).rgb * tap.z;
-        total += tap.z;
+        float reach = sqrt((float(i) + 0.5) / float(TAPS));
+        sum += tex2D(BackBuffer, uv + spoke * reach * texel * Radius).rgb * weight;
+        total += weight;
+        weight *= decay;
+        spoke = float2(spoke.x * turn.x - spoke.y * turn.y,
+                       spoke.x * turn.y + spoke.y * turn.x);
     }
 
     float3 blurred = sum / total;
