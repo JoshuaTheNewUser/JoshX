@@ -85,6 +85,8 @@ option(ENABLE_WERROR "Enable -Werror diagnostics" ON)
 # Lossless Scaling frame generation. Only Android.
 cmake_dependent_option(ENABLE_LSFG "Enable Lossless Scaling frame generation" ON "ANDROID" OFF)
 
+option(ENABLE_RESHADE "Enable ReShade FX post-processing effects" ON)
+
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
     set(YUZU_STATIC_BUILD ON)
@@ -461,21 +463,6 @@ if (NOT YUZU_STATIC_ROOM)
 
     if (ZLIB_ADDED)
         add_library(ZLIB::ZLIB ALIAS zlibstatic)
-    endif()
-
-    # Opus
-    AddJsonPackage(opus)
-
-    if (Opus_ADDED)
-        if (MSVC AND CXX_CLANG)
-            target_compile_options(opus PRIVATE
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-function-declaration>
-            )
-        endif()
-    endif()
-
-    if (NOT TARGET Opus::opus)
-        add_library(Opus::opus ALIAS opus)
     endif()
 endif()
 
